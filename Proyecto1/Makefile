@@ -2,7 +2,7 @@
 
 All:
 	@echo "----------Building project:[ Cliente - Debug ]----------"
-	@cd "/home/yordan/Desktop/Proyecto1-SO/Cliente" && "$(MAKE)" -f  "Cliente.mk"
+	@cd "/home/yordan/Proyecto1SO/Cliente" && "$(MAKE)" -f  "Cliente.mk"
 clean:
 	@echo "----------Cleaning project:[ Cliente - Debug ]----------"
-	@cd "/home/yordan/Desktop/Proyecto1-SO/Cliente" && "$(MAKE)" -f  "Cliente.mk" clean
+	@cd "/home/yordan/Proyecto1SO/Cliente" && "$(MAKE)" -f  "Cliente.mk" clean

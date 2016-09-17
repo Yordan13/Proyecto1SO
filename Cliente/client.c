@@ -35,7 +35,7 @@ void procesosAleatorios(){
 	pthread_t tid;
 	pthread_create(&tid, NULL, parar, NULL);
 	while(continuar){
-		pcb.burst=obtenerRandom(1,20);
+		pcb.burst=pcb.burstRemaining=obtenerRandom(1,20);
 		pcb.priority=obtenerRandom(1,5);
 		pcb.id=id;
 		sendPCB(pcb);

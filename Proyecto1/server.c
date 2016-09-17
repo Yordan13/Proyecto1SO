@@ -7,56 +7,279 @@
 #include <sys/types.h> 
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <pthread.h>
 #include "server.h"
+#include "heap.h"
+#include "circularList.h"
+int ready = 0;
+int timeCounter = 0;
+int totalProcesses;
+int idleTime;
+int quantum;
+PCB currentProcess;
+Heap queue;
+PCB completedProcesses[500];
+pthread_mutex_t queueMutex;
 
 void error(const char *msg)
 {
     perror(msg);
     exit(1);
 }
-
-int main(int argc, char *argv[])
-{
-     int n;
-     int size = sizeof(PCB);
-     int sockfd, newsockfd, portno;
-     socklen_t clilen;
-     char* buffer = malloc(size);
-     struct sockaddr_in serv_addr, cli_addr;
-     
-     sockfd = socket(AF_INET, SOCK_STREAM, 0);
-     if (sockfd < 0) 
-        error("ERROR opening socket");
-     bzero((char *) &serv_addr, sizeof(serv_addr));
-     portno = 8080;
-     serv_addr.sin_family = AF_INET;
-     serv_addr.sin_addr.s_addr = INADDR_ANY;
-     serv_addr.sin_port = htons(portno);
-     if (bind(sockfd, (struct sockaddr *) &serv_addr,
-              sizeof(serv_addr)) < 0) 
-              error("ERROR on binding");
-     listen(sockfd,5);
-     clilen = sizeof(cli_addr);
-     while(1){
-         newsockfd = accept(sockfd, 
-                     (struct sockaddr *) &cli_addr, 
-                     &clilen);//acepto la nueva conexion
-         if (newsockfd < 0) 
-              error("ERROR on accept");
-         bzero(buffer,size);
-         n = read(newsockfd,buffer,size);
-         PCB res = deserialize_PCB(buffer);
-         if (n < 0) 
-             error("ERROR reading from socket");
-         printf("Id: %d\nBurst: %d\nWT: %d\nTAT: %d\nPriority: %d\n\n",res.id,res.burst,res.waiting_time,res.turnaround_time,res.priority);
-     }
-     close(newsockfd);
-     close(sockfd);
-     return 0; 
+int main(int argc, char* argv[])
+{    
+    if(argc < 3)
+        error("Illegal number of arguments.");
+    if(!strcmp("sjf", argv[1]) || !strcmp("hpf", argv[1]) || !strcmp("fifo", argv[1]) 
+    || !strcmp("rr", argv[1])){
+		if(!strcmp("rr", argv[1]))
+		quantum =atoi(argv[3]);
+        if(!strcmp("auto", argv[2])){
+            createThreads(argv[1]);
+            return 0;
+        }
+        if(!strcmp("man", argv[2])){
+            if(argc < 4)
+                error("Illegal number of arguments. Must provide a path for manual mode.");
+            printf("Man mode. Path: %s", argv[3]);
+            return 0;
+        }
+        else
+            error("Illegal argument for programm mode. \nOptions are:\nauto\nman\n");
+    }
+    else
+        error("Illegal argument for algorithm. \nOptions are \nsjf\nhpf\nfifo\nrr");
+    return 0; 
 }
 
 PCB deserialize_PCB(char* pcb){
     PCB res;
     memcpy(&res, pcb, sizeof(PCB));
     return res;
+}
+
+void* initSocket(char* mode){
+    int n;
+    int size = sizeof(PCB);
+    int sockfd, newsockfd, portno;
+    socklen_t clilen;
+    char* buffer = malloc(size);
+    struct sockaddr_in serv_addr, cli_addr;
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0) 
+        error("***Error opening socket***");
+    bzero((char *) &serv_addr, sizeof(serv_addr));
+    portno = 8080;
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_addr.s_addr = INADDR_ANY;
+    serv_addr.sin_port = htons(portno);
+    if (bind(sockfd, (struct sockaddr *) &serv_addr,
+        sizeof(serv_addr)) < 0) 
+        error("***Error on binding***");
+    listen(sockfd,5);
+    clilen = sizeof(cli_addr);
+    while(!ready);
+    while(1){
+        newsockfd = accept(sockfd, 
+                    (struct sockaddr *) &cli_addr, 
+                    &clilen);//acepto la nueva conexion
+        if (newsockfd < 0) 
+            error("***Error on accept***");
+        bzero(buffer,size);
+        n = read(newsockfd,buffer,size);
+        PCB res = deserialize_PCB(buffer);
+        if (n < 0) 
+            error("***Error reading from socket***");
+        scheduleProcess(res,mode);
+        usleep(100000);
+    }
+    free(buffer);
+    close(newsockfd);
+    close(sockfd);
+    pthread_exit(0);
+}
+void createThreads(char* mode){
+    pthread_t jobScheduler;
+    pthread_t cpuScheduler;
+	pthread_t console;
+    if(pthread_create(&jobScheduler, NULL, initSocket, mode) != 0)
+        error("***Error creating thread***");
+    if(pthread_create(&cpuScheduler, NULL, initCpu, mode) != 0)
+        error("***Error creating thread***");
+	if(pthread_create(&console, NULL, consoleThread, mode) != 0)
+        error("***Error creating thread***");
+    pthread_join(jobScheduler, NULL);
+    pthread_join(cpuScheduler, NULL);
+	pthread_join(console, NULL);
+}
+void scheduleProcess(PCB pcb, char* mode){
+	if(strcmp(mode, "rr")==0){
+		//pthread_mutex_lock(&current);
+		//pthread_mutex_lock(&head);
+		
+		node_insertFirst(pcb);
+		//pthread_mutex_unlock(&current);
+		//pthread_mutex_unlock(&head);
+	}else{
+		pthread_mutex_lock(&queueMutex);
+		heap_push(&queue, pcb);
+		pthread_mutex_unlock(&queueMutex);
+	}
+}
+
+void *initCpu(void* params){
+    char* mode = (char*) params;
+    int executing, first;
+    executing = 0;
+    first = 1;
+    if(strcmp(mode, "sjf")==0)//enviar al funcion de ordenamiento correspondiente al heap
+        heap_init(&queue,compareSJF);
+    else if(strcmp(mode, "hpf")==0)
+        heap_init(&queue,compareHPF);
+    else if(strcmp(mode, "fifo")==0)
+        heap_init(&queue,compareFIFO);
+    else if(strcmp(mode, "rr")==0){
+        initCpuRR();
+		return;
+	}
+    ready = 1;
+    printf("CPU Initiated. Mode: %s\n. Press enter to start.", mode);
+    while(ready){//loop principal
+        if(first){
+            first = 0;
+            getchar();
+        }
+        if(!executing){//si hay objetos en la cola y no hay proceso ejecutandose
+        pthread_mutex_lock(&queueMutex);//bloquear la cola
+			if(queue.count > 0){
+				currentProcess = heap_front(&queue);//tomar el proceso del frente
+				heap_pop(&queue);
+				currentProcess.arriving_time = timeCounter;
+				executing=1;
+				printf("\n******Context Switch. Starting new process execution at t=%i*********\n", timeCounter);
+				pthread_mutex_unlock(&queueMutex);//desbloquear la cola
+				continue;
+			}
+			else{
+				printf("\n***Idle Processor***\n");
+				idleTime++;
+				printf("\nTime: %i\n", timeCounter++);
+				pthread_mutex_unlock(&queueMutex);//desbloquear la cola
+				sleep(1);
+				continue;
+			}
+			
+        }
+        else{
+			printf("\n***Current Process***\n");
+			printPCB(currentProcess);
+			printf("\n***Executing Process***\n");
+			
+			if(--currentProcess.burstRemaining <= 0){//termina la ejecucion.
+				executing=0;
+				completedProcesses[totalProcesses++] = currentProcess;
+				printf("\n***Ending execution at t=%i***\n",timeCounter);
+			}
+			
+			printf("\nTime: %i\n", timeCounter++);
+			sleep(1);
+		}
+    }
+    pthread_exit(0);
+}
+
+void initCpuRR(){
+	int counterActualBurst=0;
+	ready = 1;
+	int first=1;
+	int executing=0;
+    printf("CPU Initiated. Round Robin with quantum=%d. Press enter to start.", quantum);
+    while(ready){//loop principal
+        if(first){
+            first = 0;
+            getchar();
+        }
+        if(!executing){//si hay objetos en la cola y no hay proceso ejecutandose
+        //pthread_mutex_lock(&current);
+		//pthread_mutex_lock(&head);
+			if(node_length() > 0){
+				current->data.arriving_time = timeCounter;
+				executing=1;
+				printf("\n******Context Switch. Starting new process execution at t=%i*********\n", timeCounter);
+			//	pthread_mutex_unlock(&current);
+			//	pthread_mutex_unlock(&head);
+				continue;
+			}
+			else{
+				printf("\n***Idle Processor***\n");
+				idleTime++;
+				printf("\nTime: %i\n", timeCounter++);
+				//pthread_mutex_unlock(&current);
+				//pthread_mutex_unlock(&head);
+				sleep(1);
+				continue;
+			}
+			
+        }
+        else{
+			printf("\n***Current Process***\n");
+			printPCB(current->data);
+			printf("\n***Executing Process***\n");
+		
+			if(--current->data.burstRemaining <= 0 || ++counterActualBurst==quantum){//termina la ejecucion.
+				executing=0;
+				counterActualBurst=0;
+				
+				printf("\n***Ending actual execution at t=%i*** Remaining Burst=%i",
+						timeCounter,current->data.burstRemaining);
+				if(current->data.burstRemaining==0){
+					completedProcesses[totalProcesses++] = current->data;
+					node_deleteCurrent();
+				}else{
+					node_next();
+				}
+			}
+			
+			printf("\nTime: %i\n", timeCounter++);
+			sleep(1);
+		}
+    }
+    pthread_exit(0);
+}
+
+void *consoleThread(void* params){
+	while(!ready);
+	char c;
+	while(ready){
+		c = getchar();
+		if(c == ' '){
+			ready = !ready;
+			break;
+		}
+		if(c == 'q')
+			printQueue();
+	}
+	pthread_exit(0);
+}
+
+void printQueue(){
+	pthread_mutex_lock(&queueMutex);
+	printf("***Queue***");
+	for(int i = 0; i < queue.count; i++)
+		printPCB(queue.data[i]);
+	pthread_mutex_unlock(&queueMutex);
+}
+
+int compareSJF(PCB p1, PCB p2){
+    return p1.burstRemaining <= p2.burstRemaining;
+}
+int compareHPF(PCB p1, PCB p2){
+    return p1.priority <= p2.priority;
+}
+int compareFIFO(PCB p1, PCB p2){
+    return p1.arriving_time <= p2.arriving_time;
+}
+void printPCB(PCB pcb){
+    printf("\n  Id: %i\n Burst: %i\n Remaining: %i\n Priority: %i", 
+            pcb.id, pcb.burst, pcb.burstRemaining, pcb.priority);
 }

@@ -5,15 +5,15 @@
 ## Debug
 ProjectName            :=Cliente
 ConfigurationName      :=Debug
-WorkspacePath          :=/home/yordan/Desktop/Proyecto1-SO/Proyecto1
-ProjectPath            :=/home/yordan/Desktop/Proyecto1-SO/Cliente
+WorkspacePath          :=/home/yordan/Proyecto1SO/Proyecto1
+ProjectPath            :=/home/yordan/Proyecto1SO/Cliente
 IntermediateDirectory  :=./Debug
 OutDir                 := $(IntermediateDirectory)
 CurrentFileName        :=
 CurrentFilePath        :=
 CurrentFileFullPath    :=
 User                   :=Yordan
-Date                   :=11/09/16
+Date                   :=17/09/16
 CodeLitePath           :=/home/yordan/.codelite
 LinkerName             :=gcc
 SharedObjectLinkerName :=gcc -shared -fPIC
@@ -92,7 +92,7 @@ PreBuild:
 ## Objects
 ##
 $(IntermediateDirectory)/client.c$(ObjectSuffix): client.c $(IntermediateDirectory)/client.c$(DependSuffix)
-	$(CC) $(SourceSwitch) "/home/yordan/Desktop/Proyecto1-SO/Cliente/client.c" $(CFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/client.c$(ObjectSuffix) $(IncludePath)
+	$(CC) $(SourceSwitch) "/home/yordan/Proyecto1SO/Cliente/client.c" $(CFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/client.c$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/client.c$(DependSuffix): client.c
 	@$(CC) $(CFLAGS) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/client.c$(ObjectSuffix) -MF$(IntermediateDirectory)/client.c$(DependSuffix) -MM client.c
 
