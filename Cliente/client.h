@@ -5,7 +5,7 @@ typedef struct PCB
    int burstRemaining;
    int priority;
    int waiting_time;
-   int turnaround_time;
+   int finish_time;
    int arriving_time;
 } PCB;
 int sendPCB(PCB pcb);

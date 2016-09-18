@@ -113,18 +113,16 @@ void createThreads(char* mode){
 	pthread_join(console, NULL);
 }
 void scheduleProcess(PCB pcb, char* mode){
+	pthread_mutex_lock(&queueMutex);
+	pcb.arriving_time=timeCounter;
 	if(strcmp(mode, "rr")==0){
-		//pthread_mutex_lock(&current);
-		//pthread_mutex_lock(&head);
 		
 		node_insertFirst(pcb);
-		//pthread_mutex_unlock(&current);
-		//pthread_mutex_unlock(&head);
+		
 	}else{
-		pthread_mutex_lock(&queueMutex);
 		heap_push(&queue, pcb);
-		pthread_mutex_unlock(&queueMutex);
 	}
+	pthread_mutex_unlock(&queueMutex);
 }
 
 void *initCpu(void* params){
@@ -140,7 +138,7 @@ void *initCpu(void* params){
         heap_init(&queue,compareFIFO);
     else if(strcmp(mode, "rr")==0){
         initCpuRR();
-		return;
+		return 0;
 	}
     ready = 1;
     printf("CPU Initiated. Mode: %s\n. Press enter to start.", mode);
@@ -157,6 +155,7 @@ void *initCpu(void* params){
 				currentProcess.arriving_time = timeCounter;
 				executing=1;
 				printf("\n******Context Switch. Starting new process execution at t=%i*********\n", timeCounter);
+				idleTime++;
 				pthread_mutex_unlock(&queueMutex);//desbloquear la cola
 				continue;
 			}
@@ -177,6 +176,7 @@ void *initCpu(void* params){
 			
 			if(--currentProcess.burstRemaining <= 0){//termina la ejecucion.
 				executing=0;
+				currentProcess.finish_time=timeCounter;
 				completedProcesses[totalProcesses++] = currentProcess;
 				printf("\n***Ending execution at t=%i***\n",timeCounter);
 			}
@@ -202,10 +202,15 @@ void initCpuRR(){
         if(!executing){//si hay objetos en la cola y no hay proceso ejecutandose
 			pthread_mutex_lock(&queueMutex);
 			if(node_length() > 0){
-				current->data.arriving_time = timeCounter;
 				executing=1;
 				printf("\n******Context Switch. Starting new process execution at t=%i*********\n", timeCounter);
+				printf("******************************************************************\n");
+				printPCB(current->data);
+				printf("\n******************************************************************");
+				printf("\n******************************************************************\n");
+				idleTime++;
 				pthread_mutex_unlock(&queueMutex);
+				sleep(1);
 				continue;
 			}
 			else{
@@ -219,17 +224,19 @@ void initCpuRR(){
 			
         }
         else{
+			current->data.burstRemaining--;
+			counterActualBurst++;
 			printf("\n***Current Process***\n");
 			printPCB(current->data);
 			printf("\n***Executing Process***\n");
-		
-			if(--current->data.burstRemaining <= 0 || ++counterActualBurst==quantum){//termina la ejecucion.
+			if(current->data.burstRemaining <= 0 || counterActualBurst==quantum){//termina la ejecucion.
 				executing=0;
 				counterActualBurst=0;
 				
 				printf("\n***Ending actual execution at t=%i*** Remaining Burst=%i",
 						timeCounter,current->data.burstRemaining);
 				if(current->data.burstRemaining==0){
+					current->data.finish_time=timeCounter;
 					completedProcesses[totalProcesses++] = current->data;
 					node_deleteCurrent();
 				}else
@@ -250,6 +257,7 @@ void *consoleThread(char* mode){
 		c = getchar();
 		if(c == ' '){
 			ready = !ready;
+			finalReport();
 			break;
 		}
 		if(c == 'q'){
@@ -264,23 +272,29 @@ void *consoleThread(char* mode){
 
 void printList(){
 	pthread_mutex_lock(&queueMutex);
+	if (head==NULL){
+		printf("\n****Queue Empty******\n");
+		pthread_mutex_unlock(&queueMutex);		
+		return;
+	}
 	struct node *temp=head->next;
-	printf("****Queue******\n");
-	if (temp==NULL)return;
+	printf("\n****Queue******\n");
 	printPCB(head->data);
 	while(temp->next!=head){
+		printf("\n--------------------\n");
 		temp=temp->next;
 		printPCB(temp->data);
 	}
-	printf("******************");
+	printf("\n******************\n");
 	pthread_mutex_unlock(&queueMutex);
 }
 
 void printQueue(){
 	pthread_mutex_lock(&queueMutex);
-	printf("***Queue***");
+	printf("\n***Queue***");
 	for(int i = 0; i < queue.count; i++)
 		printPCB(queue.data[i]);
+	printf("\n******************\n");
 	pthread_mutex_unlock(&queueMutex);
 }
 
@@ -296,4 +310,30 @@ int compareFIFO(PCB p1, PCB p2){
 void printPCB(PCB pcb){
     printf("\n  Id: %i\n Burst: %i\n Remaining: %i\n Priority: %i", 
             pcb.id, pcb.burst, pcb.burstRemaining, pcb.priority);
+}
+void finalReport(){
+		int totalWtime=0;
+		int totaltAroundt=0;
+		int wTime=0;
+		int tAroundt=0;
+		struct PCB actual;
+		printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+		printf("****************FINAL REPORT*******************************\n");
+		printf("--->Total process executed: %i\n",totalProcesses);
+		printf("--->Total idle time: %i\n",idleTime);
+		for(int i=0; i<totalProcesses;i++){
+			actual=completedProcesses[i];
+			tAroundt=actual.finish_time-actual.arriving_time;
+			wTime=tAroundt-actual.burst;
+			totaltAroundt+=tAroundt;
+			totalWtime+=wTime;
+			printf("--->id: %i\n",completedProcesses[i].id);
+			printf("-->Turn Around Time: %i\n",tAroundt);
+			printf("-->Waiting Time: %i\n",wTime);			
+			printf("------------------------------------------------------------\n");
+		}
+		printf("***********************************************************\n");
+		printf("-->Average Turn Around Time: %i\n",totaltAroundt/totalProcesses);		
+		printf("-->Average Waiting Time: %i\n",totalWtime/totalProcesses);
+		printf("***********************************************************\n");
 }

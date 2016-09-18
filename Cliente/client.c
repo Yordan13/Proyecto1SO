@@ -30,7 +30,7 @@ void procesosAleatorios(){
 	int id =1;
 	int pausa;
 	struct PCB pcb;
-	pcb.turnaround_time=0;
+	pcb.finish_time=0;
 	pcb.waiting_time=0;
 	pthread_t tid;
 	pthread_create(&tid, NULL, parar, NULL);
@@ -65,8 +65,7 @@ void leeArchivo(char* archivo){
 			printf("Error al abrir el archivo: %s.\n",archivo);
 			return ;
 		}		
-		pcbNuevo.turnaround_time=0;
-		pcbNuevo.waiting_time=0;
+		pcbNuevo.finish_time=0;
 		while ((caracter = getc(infile)) != EOF){
 			if(caracter==10){	
 				pcbNuevo.priority=atoi(datos);
