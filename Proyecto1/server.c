@@ -200,22 +200,19 @@ void initCpuRR(){
             getchar();
         }
         if(!executing){//si hay objetos en la cola y no hay proceso ejecutandose
-        //pthread_mutex_lock(&current);
-		//pthread_mutex_lock(&head);
+			pthread_mutex_lock(&queueMutex);
 			if(node_length() > 0){
 				current->data.arriving_time = timeCounter;
 				executing=1;
 				printf("\n******Context Switch. Starting new process execution at t=%i*********\n", timeCounter);
-			//	pthread_mutex_unlock(&current);
-			//	pthread_mutex_unlock(&head);
+				pthread_mutex_unlock(&queueMutex);
 				continue;
 			}
 			else{
 				printf("\n***Idle Processor***\n");
 				idleTime++;
 				printf("\nTime: %i\n", timeCounter++);
-				//pthread_mutex_unlock(&current);
-				//pthread_mutex_unlock(&head);
+				pthread_mutex_unlock(&queueMutex);
 				sleep(1);
 				continue;
 			}
@@ -235,9 +232,8 @@ void initCpuRR(){
 				if(current->data.burstRemaining==0){
 					completedProcesses[totalProcesses++] = current->data;
 					node_deleteCurrent();
-				}else{
-					node_next();
-				}
+				}else
+				node_next();
 			}
 			
 			printf("\nTime: %i\n", timeCounter++);
@@ -247,7 +243,7 @@ void initCpuRR(){
     pthread_exit(0);
 }
 
-void *consoleThread(void* params){
+void *consoleThread(char* mode){
 	while(!ready);
 	char c;
 	while(ready){
@@ -256,10 +252,28 @@ void *consoleThread(void* params){
 			ready = !ready;
 			break;
 		}
-		if(c == 'q')
+		if(c == 'q'){
+			if(strcmp(mode, "rr")==0){
+				printList();
+			}else
 			printQueue();
+		}
 	}
 	pthread_exit(0);
+}
+
+void printList(){
+	pthread_mutex_lock(&queueMutex);
+	struct node *temp=head->next;
+	printf("****Queue******\n");
+	if (temp==NULL)return;
+	printPCB(head->data);
+	while(temp->next!=head){
+		temp=temp->next;
+		printPCB(temp->data);
+	}
+	printf("******************");
+	pthread_mutex_unlock(&queueMutex);
 }
 
 void printQueue(){

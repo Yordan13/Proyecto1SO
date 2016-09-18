@@ -13,7 +13,8 @@ typedef struct PCB
 } PCB;
 
 void printQueue();
-void *consoleThread(void* params);
+void printList();
+void *consoleThread(char* mode);
 PCB deserialize_PCB(char* pcb);
 char* serialize_PCB(PCB pcb);
 void* initSocket(char* mode);

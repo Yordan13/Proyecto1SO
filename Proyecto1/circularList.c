@@ -12,6 +12,7 @@ int node_length(){
 }
 //next element
 void node_next(){
+	if(current!=NULL)
 	current=current->next;
 }
 
@@ -43,8 +44,11 @@ void node_insertFirst(struct PCB data){
 
 //delete first item
 void node_deleteCurrent(){
+	int isHead=0;
+	if(current==head)isHead=1; 
 	if(node_isEmpty())return;
-	if(current==head){
+	if(isHead && 
+	current->next==current && current->previous==current){
 		head=NULL;
 		current=NULL;
 		len--;
@@ -58,5 +62,7 @@ void node_deleteCurrent(){
 	len--;
 	
 	current= temp;
+	if(isHead) head=temp;
+	node_next();
 }
 
