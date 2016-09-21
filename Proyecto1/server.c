@@ -226,6 +226,7 @@ void initCpuRR(){
         else{
 			current->data.burstRemaining--;
 			counterActualBurst++;
+			timeCounter++;
 			printf("\n***Current Process***\n");
 			printPCB(current->data);
 			printf("\n***Executing Process***\n");
@@ -243,7 +244,7 @@ void initCpuRR(){
 				node_next();
 			}
 			
-			printf("\nTime: %i\n", timeCounter++);
+			printf("\nTime: %i\n", timeCounter);
 			sleep(1);
 		}
     }
@@ -321,19 +322,22 @@ void finalReport(){
 		printf("****************FINAL REPORT*******************************\n");
 		printf("--->Total process executed: %i\n",totalProcesses);
 		printf("--->Total idle time: %i\n",idleTime);
+		printf("***********************************************************\n");
 		for(int i=0; i<totalProcesses;i++){
 			actual=completedProcesses[i];
 			tAroundt=actual.finish_time-actual.arriving_time;
 			wTime=tAroundt-actual.burst;
 			totaltAroundt+=tAroundt;
 			totalWtime+=wTime;
-			printf("--->id: %i\n",completedProcesses[i].id);
+			printf("--->id: %i\n",actual.id);
+			printf("--->Arriving Time: %i\n",actual.arriving_time);
+			printf("--->Finish Time: %i\n",actual.finish_time);
 			printf("-->Turn Around Time: %i\n",tAroundt);
 			printf("-->Waiting Time: %i\n",wTime);			
 			printf("------------------------------------------------------------\n");
 		}
 		printf("***********************************************************\n");
-		printf("-->Average Turn Around Time: %i\n",totaltAroundt/totalProcesses);		
-		printf("-->Average Waiting Time: %i\n",totalWtime/totalProcesses);
+		printf("-->Average Turn Around Time: %9.2f\n",(float)(totaltAroundt/totalProcesses));		
+		printf("-->Average Waiting Time: %9.2f\n",(float)(totalWtime/totalProcesses));
 		printf("***********************************************************\n");
 }

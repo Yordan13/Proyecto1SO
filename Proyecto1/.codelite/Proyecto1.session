@@ -5,15 +5,15 @@
   <TabInfoArray Name="TabInfoArray">
     <TabInfo>
       <wxString Value="/home/yordan/Proyecto1SO/Proyecto1/server.c" Name="FileName"/>
-      <int Value="308" Name="FirstVisibleLine"/>
-      <int Value="311" Name="CurrentLine"/>
+      <int Value="216" Name="FirstVisibleLine"/>
+      <int Value="228" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/home/yordan/Proyecto1SO/Proyecto1/server.h" Name="FileName"/>
       <int Value="0" Name="FirstVisibleLine"/>
-      <int Value="15" Name="CurrentLine"/>
+      <int Value="7" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
@@ -45,24 +45,15 @@
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
+    <TabInfo>
+      <wxString Value="/home/yordan/Proyecto1SO/Cliente/client.c" Name="FileName"/>
+      <int Value="54" Name="FirstVisibleLine"/>
+      <int Value="74" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
+    </TabInfo>
   </TabInfoArray>
   <SerializedObject Name="m_breakpoints">
-    <long Value="1" Name="Count"/>
-    <SerializedObject Name="Breakpoint0">
-      <wxString Value="/home/yordan/Proyecto1SO/Proyecto1/server.c" Name="file"/>
-      <int Value="205" Name="lineno"/>
-      <wxString Value="" Name="function_name"/>
-      <wxString Value="" Name="memory_address"/>
-      <int Value="1" Name="bp_type"/>
-      <int Value="0" Name="watchpoint_type"/>
-      <wxString Value="" Name="watchpt_data"/>
-      <CData Name="commandlist"/>
-      <bool Value="0" Name="regex"/>
-      <bool Value="0" Name="is_temp"/>
-      <bool Value="1" Name="is_enabled"/>
-      <int Value="0" Name="ignore_number"/>
-      <wxString Value="" Name="conditions"/>
-      <int Value="0" Name="origin"/>
-    </SerializedObject>
+    <long Value="0" Name="Count"/>
   </SerializedObject>
 </Session>

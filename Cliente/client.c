@@ -66,6 +66,8 @@ void leeArchivo(char* archivo){
 			return ;
 		}		
 		pcbNuevo.finish_time=0;
+		pcbNuevo.arriving_time=0;
+		pcbNuevo.waiting_time=0;
 		while ((caracter = getc(infile)) != EOF){
 			if(caracter==10){	
 				pcbNuevo.priority=atoi(datos);
@@ -74,7 +76,7 @@ void leeArchivo(char* archivo){
 				counter=0;
 				actualAtributo=1;
 				pausa=obtenerRandom(1,10);
-				sleep(pausa);
+				//sleep(pausa);
 				continue;
 			}
 			if(caracter!=9){
@@ -89,7 +91,7 @@ void leeArchivo(char* archivo){
 						counter=0;
 						break;
 					case 2:
-						pcbNuevo.burst=atoi(datos);
+						pcbNuevo.burst=pcbNuevo.burstRemaining=atoi(datos);
 						memset(datos, 0, 22);
 						actualAtributo++;
 						counter=0;
