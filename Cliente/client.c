@@ -7,6 +7,7 @@
 #include <netinet/in.h>
 #include <netdb.h> 
 #include <pthread.h>
+#include <time.h>
 #include "client.h"
 
 int continuar=1;
@@ -17,6 +18,7 @@ void error(const char *msg)
 }
 
 int main(int argc, char* argv[]){
+	srand(time(NULL));
 	if (argc==2){
 		char* archivo=argv[1];
 		leeArchivo(archivo);
@@ -27,28 +29,44 @@ int main(int argc, char* argv[]){
 }
 
 void procesosAleatorios(){
+	pthread_t idSends[500];
 	int id =1;
 	int pausa;
-	struct PCB pcb;
-	pcb.finish_time=0;
-	pcb.waiting_time=0;
+	struct PCB* pcb;
+	pcb=(struct PCB*)malloc(sizeof(struct PCB));
+	pcb->finish_time=0;
+	pcb->waiting_time=0;
 	pthread_t tid;
 	pthread_create(&tid, NULL, parar, NULL);
 	while(continuar){
-		pcb.burst=pcb.burstRemaining=obtenerRandom(1,20);
-		pcb.priority=obtenerRandom(1,5);
-		pcb.id=id;
-		sendPCB(pcb);
+		pcb->burst=pcb->burstRemaining=obtenerRandom(1,20);
+		pcb->priority=obtenerRandom(1,5);
+		pcb->id=id;
+		
+		pthread_t tSend;
+		pthread_create(&tSend, NULL, sendPCB, pcb);
+		idSends[id-1]=tSend;
+		
 		pausa=obtenerRandom(1,5);
 		sleep(pausa);
+		pcb=(struct PCB*)malloc(sizeof(struct PCB));
+		pcb->finish_time=0;
+		pcb->waiting_time=0;
 		id++;
 	}
+	joinThrads(idSends,id);
 	pthread_join( tid, NULL);
 }
+void joinThrads(pthread_t idSends[500], int total){
+	for(int i=0; i<total; i++)
+		pthread_join( idSends[i], NULL);
+}
+
 void *parar(){
 		printf("Presione una tecla para terminar....");
 		getchar();
 		continuar=0;
+		pthread_exit(0);
 }
 
 void leeArchivo(char* archivo){
@@ -72,11 +90,11 @@ void leeArchivo(char* archivo){
 			if(caracter==10){	
 				pcbNuevo.priority=atoi(datos);
 				memset(datos, 0, 22);
-				sendPCB(pcbNuevo);
+				sendPCB(&pcbNuevo);
 				counter=0;
 				actualAtributo=1;
 				pausa=obtenerRandom(1,10);
-				//sleep(pausa);
+				sleep(pausa);
 				continue;
 			}
 			if(caracter!=9){
@@ -108,8 +126,7 @@ int obtenerRandom(int minimo, int maximo){
   return (maximo - minimo +1)*scaled + minimo;
 }
 
-int sendPCB(PCB pcb)
-{
+int sendPCB(PCB* pcb){
     int sockfd, portno, n;
     struct sockaddr_in serv_addr;
     struct hostent *server;
@@ -131,7 +148,7 @@ int sendPCB(PCB pcb)
     serv_addr.sin_port = htons(portno);
     if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
         error("ERROR connecting");
-    buffer = serialize_PCB(pcb);
+    buffer = serialize_PCB(*pcb);
     n = write(sockfd,buffer,sizeof(PCB));
     if (n < 0) 
          error("ERROR writing to socket");

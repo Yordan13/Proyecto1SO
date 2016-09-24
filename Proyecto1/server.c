@@ -152,7 +152,7 @@ void *initCpu(void* params){
 			if(queue.count > 0){
 				currentProcess = heap_front(&queue);//tomar el proceso del frente
 				heap_pop(&queue);
-				currentProcess.arriving_time = timeCounter;
+				//currentProcess.arriving_time = timeCounter;
 				executing=1;
 				printf("\n******Context Switch. Starting new process execution at t=%i*********\n", timeCounter);
 				idleTime++;
@@ -170,6 +170,7 @@ void *initCpu(void* params){
 			
         }
         else{
+			timeCounter++;
 			printf("\n***Current Process***\n");
 			printPCB(currentProcess);
 			printf("\n***Executing Process***\n");
@@ -181,7 +182,7 @@ void *initCpu(void* params){
 				printf("\n***Ending execution at t=%i***\n",timeCounter);
 			}
 			
-			printf("\nTime: %i\n", timeCounter++);
+			printf("\nTime: %i\n", timeCounter);
 			sleep(1);
 		}
     }
@@ -278,9 +279,9 @@ void printList(){
 		pthread_mutex_unlock(&queueMutex);		
 		return;
 	}
-	struct node *temp=head->next;
+	struct node *temp=head;
 	printf("\n****Queue******\n");
-	printPCB(head->data);
+	printPCB(temp->data);
 	while(temp->next!=head){
 		printf("\n--------------------\n");
 		temp=temp->next;
