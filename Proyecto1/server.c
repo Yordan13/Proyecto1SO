@@ -301,10 +301,14 @@ void printQueue(){
 }
 
 int compareSJF(PCB p1, PCB p2){
+	if (p1.burstRemaining == p2.burstRemaining)
+		return p1.arriving_time <= p2.arriving_time;
     return p1.burstRemaining <= p2.burstRemaining;
 }
 int compareHPF(PCB p1, PCB p2){
-    return p1.priority <= p2.priority;
+	if (p1.priority == p2.priority)
+		return p1.arriving_time <= p2.arriving_time;
+    return p1.priority < p2.priority;
 }
 int compareFIFO(PCB p1, PCB p2){
     return p1.arriving_time <= p2.arriving_time;

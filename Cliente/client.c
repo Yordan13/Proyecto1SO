@@ -36,6 +36,7 @@ void procesosAleatorios(){
 	pcb=(struct PCB*)malloc(sizeof(struct PCB));
 	pcb->finish_time=0;
 	pcb->waiting_time=0;
+	pcb->arriving_time=0;
 	pthread_t tid;
 	pthread_create(&tid, NULL, parar, NULL);
 	while(continuar){
@@ -51,13 +52,14 @@ void procesosAleatorios(){
 		sleep(pausa);
 		pcb=(struct PCB*)malloc(sizeof(struct PCB));
 		pcb->finish_time=0;
+		pcb->arriving_time=0;
 		pcb->waiting_time=0;
 		id++;
 	}
-	joinThrads(idSends,id);
+	joinThreads(idSends,id);
 	pthread_join( tid, NULL);
 }
-void joinThrads(pthread_t idSends[500], int total){
+void joinThreads(pthread_t idSends[500], int total){
 	for(int i=0; i<total; i++)
 		pthread_join( idSends[i], NULL);
 }
@@ -70,10 +72,13 @@ void *parar(){
 }
 
 void leeArchivo(char* archivo){
+		pthread_t idSends[500];
+		int counterThreats=0;
 		FILE *infile;
 		int actualAtributo=1;
 		int counter=0;
-		struct PCB pcbNuevo;
+		struct PCB* pcbNuevo;
+		pcbNuevo=(struct PCB*)malloc(sizeof(struct PCB));
 		char datos[22];
 		int pausa;
 		memset(datos, 0, 22);
@@ -83,18 +88,27 @@ void leeArchivo(char* archivo){
 			printf("Error al abrir el archivo: %s.\n",archivo);
 			return ;
 		}		
-		pcbNuevo.finish_time=0;
-		pcbNuevo.arriving_time=0;
-		pcbNuevo.waiting_time=0;
+		pcbNuevo->finish_time=0;
+		pcbNuevo->arriving_time=0;
+		pcbNuevo->waiting_time=0;
 		while ((caracter = getc(infile)) != EOF){
 			if(caracter==10){	
-				pcbNuevo.priority=atoi(datos);
+				pcbNuevo->priority=atoi(datos);
 				memset(datos, 0, 22);
-				sendPCB(&pcbNuevo);
+				
+				pthread_t tSend;
+				pthread_create(&tSend, NULL, sendPCB, pcbNuevo);
+				idSends[counterThreats]=tSend;
+				counterThreats++;
+				
 				counter=0;
 				actualAtributo=1;
 				pausa=obtenerRandom(1,10);
 				sleep(pausa);
+				pcbNuevo=(struct PCB*)malloc(sizeof(struct PCB));		
+				pcbNuevo->finish_time=0;
+				pcbNuevo->arriving_time=0;
+				pcbNuevo->waiting_time=0;
 				continue;
 			}
 			if(caracter!=9){
@@ -103,13 +117,13 @@ void leeArchivo(char* archivo){
 			}else{
 				switch(actualAtributo){
 					case 1:	
-						pcbNuevo.id=atoi(datos);
+						pcbNuevo->id=atoi(datos);
 						memset(datos, 0, 22);
 						actualAtributo++;
 						counter=0;
 						break;
 					case 2:
-						pcbNuevo.burst=pcbNuevo.burstRemaining=atoi(datos);
+						pcbNuevo->burst=pcbNuevo->burstRemaining=atoi(datos);
 						memset(datos, 0, 22);
 						actualAtributo++;
 						counter=0;
@@ -119,6 +133,8 @@ void leeArchivo(char* archivo){
 			}
 		}
 		fclose(infile);
+		joinThreads(idSends,counterThreats);
+		pthread_exit(0);
 }
 
 int obtenerRandom(int minimo, int maximo){

@@ -14,4 +14,4 @@ void leeArchivo(char* archivo);
 void procesosAleatorios();
 void *parar();
 int obtenerRandom(int minimo, int maximo);
-void joinThrads(pthread_t idSends[500], int total);
+void joinThreads(pthread_t idSends[500], int total);
