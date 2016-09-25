@@ -1,38 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Session Name="/home/yordan/Proyecto1SO/Proyecto1/Proyecto1.workspace">
-  <int Value="1" Name="m_selectedTab"/>
+  <int Value="0" Name="m_selectedTab"/>
   <wxString Value="/home/yordan/Proyecto1SO/Proyecto1/Proyecto1.workspace" Name="m_workspaceName"/>
   <TabInfoArray Name="TabInfoArray">
     <TabInfo>
       <wxString Value="/home/yordan/Proyecto1SO/Cliente/client.c" Name="FileName"/>
-      <int Value="0" Name="FirstVisibleLine"/>
-      <int Value="135" Name="CurrentLine"/>
+      <int Value="9" Name="FirstVisibleLine"/>
+      <int Value="28" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/home/yordan/Proyecto1SO/Proyecto1/server.c" Name="FileName"/>
-      <int Value="297" Name="FirstVisibleLine"/>
-      <int Value="308" Name="CurrentLine"/>
+      <int Value="27" Name="FirstVisibleLine"/>
+      <int Value="314" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/home/yordan/Proyecto1SO/Cliente/client.h" Name="FileName"/>
-      <int Value="0" Name="FirstVisibleLine"/>
-      <int Value="11" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/home/yordan/Proyecto1SO/Proyecto1/heap.c" Name="FileName"/>
-      <int Value="78" Name="FirstVisibleLine"/>
-      <int Value="9" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/home/yordan/Proyecto1SO/Proyecto1/heap.h" Name="FileName"/>
       <int Value="0" Name="FirstVisibleLine"/>
       <int Value="11" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>

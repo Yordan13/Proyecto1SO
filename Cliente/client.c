@@ -23,8 +23,10 @@ int main(int argc, char* argv[]){
 		char* archivo=argv[1];
 		leeArchivo(archivo);
 	}
-	else{
+	else if(argc==1)
 		procesosAleatorios();
+	else{
+		printf("Error, ilegal amount of arguments.\n");
 	}
 }
 
@@ -103,8 +105,9 @@ void leeArchivo(char* archivo){
 				
 				counter=0;
 				actualAtributo=1;
-				pausa=obtenerRandom(1,10);
-				sleep(pausa);
+				pausa=obtenerRandom(1,5);
+				//sleep(pausa);
+				usleep(1000);
 				pcbNuevo=(struct PCB*)malloc(sizeof(struct PCB));		
 				pcbNuevo->finish_time=0;
 				pcbNuevo->arriving_time=0;

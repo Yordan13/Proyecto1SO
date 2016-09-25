@@ -76,7 +76,7 @@ void* initSocket(char* mode){
     if (bind(sockfd, (struct sockaddr *) &serv_addr,
         sizeof(serv_addr)) < 0) 
         error("***Error on binding***");
-    listen(sockfd,5);
+    listen(sockfd,10);
     clilen = sizeof(cli_addr);
     while(!ready);
     while(1){
@@ -301,16 +301,24 @@ void printQueue(){
 }
 
 int compareSJF(PCB p1, PCB p2){
-	if (p1.burstRemaining == p2.burstRemaining)
+	if (p1.burst == p2.burst){
+		if (p1.arriving_time == p2.arriving_time)
+			return p1.id<p2.id;
 		return p1.arriving_time <= p2.arriving_time;
-    return p1.burstRemaining <= p2.burstRemaining;
+	}
+    return p1.burst <= p2.burst;
 }
 int compareHPF(PCB p1, PCB p2){
-	if (p1.priority == p2.priority)
+	if (p1.priority == p2.priority){
+		if (p1.arriving_time == p2.arriving_time)
+			return p1.id<p2.id;
 		return p1.arriving_time <= p2.arriving_time;
+	}
     return p1.priority < p2.priority;
 }
 int compareFIFO(PCB p1, PCB p2){
+	if (p1.arriving_time == p2.arriving_time)
+			return p1.id<p2.id;
     return p1.arriving_time <= p2.arriving_time;
 }
 void printPCB(PCB pcb){
@@ -342,7 +350,7 @@ void finalReport(){
 			printf("------------------------------------------------------------\n");
 		}
 		printf("***********************************************************\n");
-		printf("-->Average Turn Around Time: %9.2f\n",(float)(totaltAroundt/totalProcesses));		
-		printf("-->Average Waiting Time: %9.2f\n",(float)(totalWtime/totalProcesses));
+		printf("-->Average Turn Around Time: %9.2f\n",((float)totaltAroundt/(float)totalProcesses));		
+		printf("-->Average Waiting Time: %9.2f\n",((float)totalWtime/(float)totalProcesses));
 		printf("***********************************************************\n");
 }
